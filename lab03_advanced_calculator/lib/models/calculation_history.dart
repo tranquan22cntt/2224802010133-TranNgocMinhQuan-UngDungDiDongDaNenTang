@@ -3,7 +3,11 @@ class CalculationHistory {
   final String result;
   final DateTime timestamp;
 
-  CalculationHistory({required this.expression, required this.result, required this.timestamp});
+  CalculationHistory({
+    required this.expression,
+    required this.result,
+    required this.timestamp,
+  });
 
   Map<String, dynamic> toJson() => {
     'expression': expression,

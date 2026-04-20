@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/calculator_mode.dart';
 import '../utils/calculator_logic.dart';
+import 'history_provider.dart';
 
 class CalculatorProvider extends ChangeNotifier {
   String _expression = '';
@@ -12,7 +13,7 @@ class CalculatorProvider extends ChangeNotifier {
   String get result => _result;
   CalculatorMode get mode => _mode;
 
-  void addToExpression(String value) {
+  void addToExpression(String value, HistoryProvider historyProvider) {
     if (_isCalculated) {
       if (RegExp(r'[0-9.πe]').hasMatch(value) ||
           ['sin', 'cos', 'tan', 'ln', 'log', '√', '('].contains(value)) {
@@ -23,6 +24,7 @@ class CalculatorProvider extends ChangeNotifier {
       }
       _isCalculated = false;
     }
+
     if (value == 'MC') { _memory = 0; return; }
     if (value == 'MR') {
       _expression += _memory.toString();
@@ -31,8 +33,9 @@ class CalculatorProvider extends ChangeNotifier {
     }
     if (value == 'M+') { _memory += double.tryParse(_result) ?? 0; return; }
     if (value == 'M-') { _memory -= double.tryParse(_result) ?? 0; return; }
+
     if (value == '=') {
-      calculate();
+      calculate(historyProvider);
     } else if (value == 'C') {
       _expression = '';
       _result = '0';
@@ -56,9 +59,16 @@ class CalculatorProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void calculate() {
+  void calculate(HistoryProvider historyProvider) {
     if (_expression.isEmpty) return;
+
+    String currentExp = _expression;
     _result = CalculatorLogic.calculate(_expression);
+
+    if (_result != "Error") {
+      historyProvider.addHistory(currentExp, _result);
+    }
+
     _isCalculated = true;
     notifyListeners();
   }

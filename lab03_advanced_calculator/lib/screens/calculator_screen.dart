@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/calculator_provider.dart';
+import '../providers/history_provider.dart'; // THÊM DÒNG NÀY
 import '../models/calculator_mode.dart';
 import '../widgets/calculator_button.dart';
 import 'settings_screen.dart';
+import 'history_screen.dart';
 
 class CalculatorScreen extends StatelessWidget {
   const CalculatorScreen({super.key});
@@ -12,11 +14,20 @@ class CalculatorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<CalculatorProvider>(context);
     final isScientific = provider.mode == CalculatorMode.scientific;
+    final history = Provider.of<HistoryProvider>(context, listen: false);
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.history, color: Theme.of(context).iconTheme.color),
+          onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HistoryScreen())
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.settings, color: Theme.of(context).iconTheme.color),
@@ -33,7 +44,7 @@ class CalculatorScreen extends StatelessWidget {
             Expanded(
               flex: 3,
               child: GestureDetector(
-                onHorizontalDragEnd: (details) => provider.addToExpression('CE'),
+                onHorizontalDragEnd: (details) => provider.addToExpression('CE', history),
                 child: _buildDisplayArea(provider, context),
               ),
             ),
@@ -42,7 +53,9 @@ class CalculatorScreen extends StatelessWidget {
               flex: 7,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: isScientific ? _buildScientificGrid(provider) : _buildBasicGrid(provider),
+                child: isScientific
+                    ? _buildScientificGrid(provider, context)
+                    : _buildBasicGrid(provider, context),
               ),
             ),
           ],
@@ -101,7 +114,7 @@ class CalculatorScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBasicGrid(CalculatorProvider p) {
+  Widget _buildBasicGrid(CalculatorProvider p, BuildContext context) {
     final rows = [
       ['C', 'CE', '%', '÷'],
       ['7', '8', '9', '×'],
@@ -109,10 +122,10 @@ class CalculatorScreen extends StatelessWidget {
       ['1', '2', '3', '+'],
       ['±', '0', '.', '=']
     ];
-    return Column(children: rows.map((r) => _buildRow(r, p)).toList());
+    return Column(children: rows.map((r) => _buildRow(r, p, context)).toList());
   }
 
-  Widget _buildScientificGrid(CalculatorProvider p) {
+  Widget _buildScientificGrid(CalculatorProvider p, BuildContext context) {
     final rows = [
       ['sin', 'cos', 'tan', 'ln', 'log', '√'],
       ['(', ')', 'x²', 'x^y', 'π', 'e'],
@@ -121,16 +134,18 @@ class CalculatorScreen extends StatelessWidget {
       ['M+', '1', '2', '3', '%', '-'],
       ['M-', '±', '0', '.', '=', '+'],
     ];
-    return Column(children: rows.map((r) => _buildRow(r, p)).toList());
+    return Column(children: rows.map((r) => _buildRow(r, p, context)).toList());
   }
 
-  Widget _buildRow(List<String> labels, CalculatorProvider p) {
+  Widget _buildRow(List<String> labels, CalculatorProvider p, BuildContext context) {
+    final history = Provider.of<HistoryProvider>(context, listen: false);
+
     return Expanded(
       child: Row(
         children: labels.map((l) => CalculatorButton(
             label: l,
             backgroundColor: _getColor(l),
-            onPressed: () => p.addToExpression(l)
+            onPressed: () => p.addToExpression(l, history)
         )).toList(),
       ),
     );
