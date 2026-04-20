@@ -27,15 +27,12 @@ class AdvancedCalculatorApp extends StatelessWidget {
       builder: (context, themeProvider, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Advanced Calculator',
           themeMode: themeProvider.themeMode,
           theme: ThemeData(
-            fontFamily: 'Roboto',
             brightness: Brightness.light,
             scaffoldBackgroundColor: const Color(0xFFF5F5F5),
           ),
           darkTheme: ThemeData(
-            fontFamily: 'Roboto',
             brightness: Brightness.dark,
             scaffoldBackgroundColor: const Color(0xFF121212),
           ),

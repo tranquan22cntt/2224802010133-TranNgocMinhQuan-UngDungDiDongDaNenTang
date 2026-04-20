@@ -6,36 +6,61 @@ class CalculatorProvider extends ChangeNotifier {
   String _expression = '';
   String _result = '0';
   CalculatorMode _mode = CalculatorMode.basic;
-
+  bool _isCalculated = false;
+  double _memory = 0;
   String get expression => _expression;
   String get result => _result;
   CalculatorMode get mode => _mode;
 
   void addToExpression(String value) {
+    if (_isCalculated) {
+      if (RegExp(r'[0-9.πe]').hasMatch(value) ||
+          ['sin', 'cos', 'tan', 'ln', 'log', '√', '('].contains(value)) {
+        _expression = '';
+      }
+      else if (['+', '-', '×', '÷', '%', 'x^y', 'x²'].contains(value)) {
+        _expression = _result;
+      }
+      _isCalculated = false;
+    }
+    if (value == 'MC') { _memory = 0; return; }
+    if (value == 'MR') {
+      _expression += _memory.toString();
+      notifyListeners();
+      return;
+    }
+    if (value == 'M+') { _memory += double.tryParse(_result) ?? 0; return; }
+    if (value == 'M-') { _memory -= double.tryParse(_result) ?? 0; return; }
     if (value == '=') {
       calculate();
     } else if (value == 'C') {
       _expression = '';
       _result = '0';
+      _isCalculated = false;
     } else if (value == 'CE') {
-      clearEntry();
-    } else {
+      if (_expression.isNotEmpty) _expression = _expression.substring(0, _expression.length - 1);
+    }
+    else if (value == 'x^y') {
+      _expression += '^';
+    }
+    else if (value == 'x²') {
+      _expression += '^2';
+    }
+    else if (['sin', 'cos', 'tan', 'ln', 'log', '√'].contains(value)) {
+      _expression += value == '√' ? '√(' : '$value(';
+    }
+    else {
       _expression += value;
     }
+
     notifyListeners();
   }
 
   void calculate() {
     if (_expression.isEmpty) return;
     _result = CalculatorLogic.calculate(_expression);
+    _isCalculated = true;
     notifyListeners();
-  }
-
-  void clearEntry() {
-    if (_expression.isNotEmpty) {
-      _expression = _expression.substring(0, _expression.length - 1);
-      notifyListeners();
-    }
   }
 
   void toggleMode(CalculatorMode newMode) {
